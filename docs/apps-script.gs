@@ -14,21 +14,24 @@ function doPost(e) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
 
     var respuestas = data.respuestas || [];
+    var preguntas = data.preguntas || [];
 
-    // Crear encabezados la primera vez (si la hoja está vacía)
-    if (sheet.getLastRow() === 0) {
-      var headers = ['Fecha', 'Resultado', 'Etapa', 'Lead Score', 'Tier'];
-      for (var i = 0; i < respuestas.length; i++) {
-        headers.push('P' + (i + 1));
-      }
-      sheet.appendRow(headers);
-    }
+    // Encabezados legibles. Si no llegan enunciados, cae a P1, P2, ...
+    var colsPreguntas = preguntas.length
+      ? preguntas
+      : respuestas.map(function (_, i) { return 'P' + (i + 1); });
+    var headers = ['Fecha', 'Resultado', 'Etapa', 'Palabra', 'Lead Score', 'Tier'].concat(colsPreguntas);
+
+    // Refrescar la fila 1 en cada envío: así, si cambias el texto de una
+    // pregunta, el encabezado de la hoja se mantiene en sync automáticamente.
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
 
     // Armar la fila con los datos recibidos
     var row = [
       data.fecha || new Date().toLocaleString('es-MX'),
       data.resultado || '',
       data.etapa || '',
+      data.palabra || '',
       data.leadScore != null ? data.leadScore : '',
       data.tier || '',
     ].concat(respuestas);

@@ -202,23 +202,23 @@
         { t: "Más de 50", r: {}, lead: 0 },
       ]},
       { q: "¿Cómo describirías tu situación actual?", options: [
-        { t: "Soy estudiante o estoy empezando laboralmente", r: {}, lead: -1 },
-        { t: "Trabajo normal, horarios relativamente estables", r: {}, lead: 1 },
+        { t: "Soy estudiante o estoy empezando laboralmente", r: {}, lead: 0 },
+        { t: "Trabajo normal, horarios relativamente estables", r: {}, lead: 0 },
         { t: "Profesionista, ejecutivo, emprendedor o dueño de negocio", r: {}, lead: 3 },
         { t: "Tengo negocio/carrera demandante y poco tiempo libre", r: { sistema: 1 }, lead: 3 },
       ]},
       { q: "¿Cómo se ve una semana normal para ti?", options: [
         { t: "Tengo bastante tiempo libre", r: {}, lead: 0 },
-        { t: "Rutina estable, pero me cuesta organizarme", r: { sistema: 1 }, lead: 1 },
+        { t: "Rutina estable, pero me cuesta organizarme", r: { sistema: 1 }, lead: 0 },
         { t: "Trabajo muchas horas y el entrenamiento queda al final", r: { sistema: 1 }, lead: 3 },
         { t: "Vivo entre juntas, estrés, viajes, pendientes o comidas fuera", r: { sistema: 2 }, lead: 3 },
       ]},
       { q: "¿Cuál es tu mayor problema hoy?", options: [
         { t: "No sé si definir o subir músculo", r: { recomp: 1 }, lead: 0 },
-        { t: "Me cuesta sostener la dieta", r: { sistema: 1 }, lead: 1 },
-        { t: "Entreno, pero no veo cambios claros", r: { recomp: 1 }, lead: 1 },
-        { t: "Empiezo bien y abandono cuando la semana se complica", r: { sistema: 2 }, lead: 2 },
-        { t: "Siento que mi cuerpo es la única área que no tengo bajo control", r: { sistema: 1, recomp: 1 }, lead: 2 },
+        { t: "Me cuesta sostener la dieta", r: { sistema: 1 }, lead: 0 },
+        { t: "Entreno, pero no veo cambios claros", r: { recomp: 1 }, lead: 0 },
+        { t: "Empiezo bien y abandono cuando la semana se complica", r: { sistema: 2 }, lead: 0 },
+        { t: "Siento que mi cuerpo es la única área que no tengo bajo control", r: { sistema: 1, recomp: 1 }, lead: 0 },
       ]},
       { q: "¿Cómo describirías tu físico actual?", options: [
         { t: "Delgado, pero sin mucha masa muscular", r: { subir: 2 }, lead: 0 },
@@ -250,9 +250,9 @@
       ]},
       { q: "¿Qué probaste antes?", options: [
         { t: "Nada serio todavía", r: {}, lead: 0 },
-        { t: "Rutinas de YouTube", r: {}, lead: 1 },
-        { t: "Apps o planes genéricos", r: {}, lead: 1 },
-        { t: "Dietas de moda", r: {}, lead: 1 },
+        { t: "Rutinas de YouTube", r: {}, lead: 0 },
+        { t: "Apps o planes genéricos", r: {}, lead: 0 },
+        { t: "Dietas de moda", r: {}, lead: 0 },
         { t: "Ya probé de todo y siempre vuelvo a empezar", r: { sistema: 1 }, lead: 2 },
       ]},
       { q: "¿Cuál es tu objetivo principal en los próximos 90 días?", options: [
@@ -264,15 +264,15 @@
       ]},
       { q: "¿Qué tan dispuesto estás a seguir un plan si está adaptado a tu vida real?", options: [
         { t: "Estoy mirando opciones", r: {}, lead: 0 },
-        { t: "Me interesa, pero no sé si podría sostenerlo", r: {}, lead: 1 },
-        { t: "Si tiene sentido, lo ejecuto", r: {}, lead: 2 },
-        { t: "Necesito que alguien me diga exactamente qué hacer y lo hago", r: {}, lead: 2 },
+        { t: "Me interesa, pero no sé si podría sostenerlo", r: {}, lead: 0 },
+        { t: "Si tiene sentido, lo ejecuto", r: {}, lead: 0 },
+        { t: "Necesito que alguien me diga exactamente qué hacer y lo hago", r: {}, lead: 0 },
         { t: "Quiero algo gratis para probar", r: {}, lead: -4 },
       ]},
       { q: "¿Qué tipo de ayuda estás buscando ahora?", options: [
         { t: "Una rutina gratis", r: {}, lead: -4 },
         { t: "Ideas generales para mejorar", r: {}, lead: 0 },
-        { t: "Una guía clara para saber qué etapa me toca", r: {}, lead: 1 },
+        { t: "Una guía clara para saber qué etapa me toca", r: {}, lead: 0 },
         { t: "Un plan adaptado a mi agenda", r: {}, lead: 3 },
         { t: "Seguimiento para dejar de improvisar", r: {}, lead: 3 },
       ]},
@@ -314,6 +314,7 @@
     let current = 0;
     const answers = new Array(QUESTIONS.length).fill(null); // guarda índice de opción
     let finalResultKey = null;
+    let leadWord = 'SOPORTE'; // REVISIÓN (lead alto, 12+) | SOPORTE (el resto)
 
     const el = (id) => document.getElementById(id);
     const show = (id) => {
@@ -376,16 +377,22 @@
       let tier = 'ICP_BAJO';
       if (lead >= 12) tier = 'ICP_ALTO';
       else if (lead >= 6) tier = 'ICP_MEDIO';
+
+      // Palabra que mandará por WhatsApp: solo el lead alto (12+) manda REVISIÓN
+      leadWord = (lead >= 12) ? 'REVISIÓN' : 'SOPORTE';
+
       // Disponible para tracking / CRM:
-      console.log('[LEGIONARIOS] resultado:', best, '| lead score:', lead, '| tier:', tier);
+      console.log('[LEGIONARIOS] resultado:', best, '| lead score:', lead, '| tier:', tier, '| palabra:', leadWord);
 
       // Enviar a Google Sheets (si está configurado)
       sendToSheet({
         fecha: new Date().toLocaleString('es-MX'),
         resultado: RESULTS[best].keyword,   // DEFINIR / MÚSCULO / RECOMP / AGENDA
         etapa: best,                        // definir / subir / recomp / sistema
+        palabra: leadWord,                  // REVISIÓN | SOPORTE
         leadScore: lead,
         tier: tier,                         // ICP_ALTO / ICP_MEDIO / ICP_BAJO
+        preguntas: QUESTIONS.map(q => q.q), // enunciados → encabezados legibles en la hoja
         respuestas: answers.map((ans, qi) => ans === null ? '' : QUESTIONS[qi].options[ans].t),
       });
 
@@ -425,18 +432,18 @@
 
       if (opt === 'A') {
         soft.classList.add('hidden');
-        const msg = `Hola, hice el diagnóstico de recomposición. Mi resultado fue: ${R.keyword}. Quiero saber qué ajuste harían primero en mi caso.`;
+        const msg = `Hola, quiero mi ${leadWord}. Hice el diagnóstico y mi resultado fue: ${R.keyword}. Quiero saber qué ajuste harían primero en mi caso.`;
         el('wa-preview').textContent = `“${msg}”`;
         el('wa-btn').href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
         wa.classList.remove('hidden');
         wa.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else if (opt === 'B') {
         wa.classList.add('hidden');
-        soft.textContent = 'Perfecto. Cuando quieras retomarlo, guarda tu resultado (' + R.keyword + ') y escríbenos con la palabra RECOMPOSICIÓN.';
+        soft.textContent = 'Perfecto. Cuando quieras retomarlo, escríbenos por WhatsApp con la palabra ' + leadWord + '.';
         soft.classList.remove('hidden');
       } else {
         wa.classList.add('hidden');
-        soft.textContent = 'Listo. Ya sabes qué etapa te toca: ' + R.keyword + '. Si más adelante quieres el primer ajuste concreto, aquí estamos.';
+        soft.textContent = 'Listo. Ya sabes qué etapa te toca: ' + R.keyword + '. Si más adelante quieres el primer ajuste concreto, escríbenos con la palabra ' + leadWord + '.';
         soft.classList.remove('hidden');
       }
     }

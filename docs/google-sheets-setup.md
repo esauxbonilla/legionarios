@@ -51,7 +51,9 @@ Guarda, haz `commit` y `push`. ¡Listo! Cada quiz completado escribe una fila.
 ## Cómo probar que funciona
 1. Abre el quiz y complétalo hasta ver un resultado.
 2. Ve a tu hoja de Google Sheets → debe aparecer una fila nueva con la fecha, el
-   resultado, el lead score, el tier (ICP_ALTO/MEDIO/BAJO) y las 12 respuestas.
+   resultado, la etapa, la **Palabra** (REVISIÓN/SOPORTE), el lead score, el tier
+   (ICP_ALTO/MEDIO/BAJO) y las respuestas (una columna por pregunta, con el texto
+   de la pregunta como encabezado).
 3. Si no aparece: abre la consola del navegador (F12) y revisa si hay un aviso.
 
 ---
