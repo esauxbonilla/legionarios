@@ -114,17 +114,16 @@
   <div class="wrap">
     <div class="topbar">
       <div class="logo">LG</div>
-      <span class="eyebrow">Legionarios · Diagnóstico</span>
-      <a class="back" href="../index.html">← Banco</a>
+      <span class="eyebrow">Legionarios</span>
     </div>
 
     <!-- ============ HERO ============ -->
     <section class="screen active" id="screen-hero">
       <div class="kicker">Diagnóstico de 5 minutos</div>
       <h1>¿Definir, subir o<br>recomponer?</h1>
-      <p class="lead">Hacé este diagnóstico y descubrí qué etapa te toca según tu grasa actual, músculo, experiencia entrenando y estilo de vida.</p>
+      <p class="lead">Haz este diagnóstico y descubre qué etapa te toca según tu grasa actual, músculo, experiencia entrenando y estilo de vida.</p>
       <div class="filter-box">
-        No es una rutina gratis. Es un diagnóstico para saber <b>qué camino te conviene tomar</b> si querés verte mejor sin perder meses haciendo lo incorrecto.
+        No es una rutina gratis. Es un diagnóstico para saber <b>qué camino te conviene tomar</b> si quieres verte mejor sin perder meses haciendo lo incorrecto.
       </div>
       <button class="cta" onclick="startQuiz()">Empezar diagnóstico →</button>
       <div class="meta-note">12 preguntas · ~5 minutos · Resultado personalizado</div>
@@ -159,7 +158,7 @@
 
       <div class="divider"></div>
 
-      <div class="final-q">¿Querés que Bastián o su equipo revise tu resultado?</div>
+      <div class="final-q">¿Quieres que Bastián o su equipo revise tu resultado?</div>
       <div class="options">
         <button class="option" onclick="finalAnswer('A')"><span class="letter">A</span> Sí, quiero saber qué harían primero en mi caso</button>
         <button class="option" onclick="finalAnswer('B')"><span class="letter">B</span> Sí, pero más adelante</button>
@@ -169,7 +168,7 @@
       <!-- WhatsApp block (respuesta A) -->
       <div class="wa-block hidden" id="wa-block">
         <div class="divider"></div>
-        <p class="result-text">Perfecto. Este es el mensaje que le vas a enviar al equipo. Solo tocá el botón:</p>
+        <p class="result-text">Perfecto. Este es el mensaje que le vas a enviar al equipo. Solo toca el botón:</p>
         <div class="wa-preview" id="wa-preview"></div>
         <a class="cta wa" id="wa-btn" target="_blank" rel="noopener">Enviar mi resultado por WhatsApp</a>
       </div>
@@ -204,7 +203,7 @@
         { t: "Profesionista, ejecutivo, emprendedor o dueño de negocio", r: {}, lead: 3 },
         { t: "Tengo negocio/carrera demandante y poco tiempo libre", r: { sistema: 1 }, lead: 3 },
       ]},
-      { q: "¿Cómo se ve una semana normal para vos?", options: [
+      { q: "¿Cómo se ve una semana normal para ti?", options: [
         { t: "Tengo bastante tiempo libre", r: {}, lead: 0 },
         { t: "Rutina estable, pero me cuesta organizarme", r: { sistema: 1 }, lead: 1 },
         { t: "Trabajo muchas horas y el entrenamiento queda al final", r: { sistema: 1 }, lead: 3 },
@@ -224,14 +223,14 @@
         { t: "Me veo grande, pero tapado", r: { definir: 1, recomp: 1 }, lead: 0 },
         { t: "Ya estoy relativamente definido", r: { definir: 2 }, lead: 0 },
       ]},
-      { q: "¿Cuánto músculo sentís que tenés hoy?", options: [
+      { q: "¿Cuánto músculo sientes que tienes hoy?", options: [
         { t: "Muy poco, nunca construí una buena base", r: { subir: 2 }, lead: 0 },
         { t: "Algo tengo, pero me falta forma", r: { recomp: 1, subir: 1 }, lead: 0 },
         { t: "Entrené antes y sé que puedo recuperar", r: { recomp: 2 }, lead: 0 },
         { t: "Tengo buena base, pero estoy tapado de grasa", r: { definir: 1, recomp: 1 }, lead: 0 },
         { t: "Tengo buena base y quiero afinar", r: { definir: 2 }, lead: 0 },
       ]},
-      { q: "¿Hace cuánto entrenás o intentás entrenar en serio?", options: [
+      { q: "¿Hace cuánto entrenas o intentas entrenar en serio?", options: [
         { t: "Nunca fui constante", r: { sistema: 2 }, lead: 0 },
         { t: "Menos de 6 meses", r: { subir: 1, sistema: 1 }, lead: 0 },
         { t: "6–12 meses", r: { recomp: 1 }, lead: 0 },
@@ -282,26 +281,26 @@
       definir: {
         title: 'Tu etapa es <span class="em">DEFINIR</span>',
         keyword: "DEFINIR",
-        text: "Tu prioridad no es hacer más volumen ni cambiar todo. Tu cuerpo ya tiene una base; lo que necesitás es perder grasa sin sacrificar músculo ni energía.",
-        warn: "Si definís de forma agresiva, podés verte más chico, perder rendimiento y abandonar rápido.",
+        text: "Tu prioridad no es hacer más volumen ni cambiar todo. Tu cuerpo ya tiene una base; lo que necesitas es perder grasa sin sacrificar músculo ni energía.",
+        warn: "Si defines de forma agresiva, puedes verte más chico, perder rendimiento y abandonar rápido.",
       },
       subir: {
         title: 'Tu etapa es <span class="em">SUBIR MÚSCULO</span>',
         keyword: "MÚSCULO",
-        text: "Hoy tu prioridad no debería ser “marcarte”. Para definir necesitás algo que mostrar. Tu enfoque debería ser construir músculo de forma controlada, sin subir grasa innecesaria.",
-        warn: "Si intentás definir ahora, probablemente solo te vas a ver más flaco, no más atlético.",
+        text: "Hoy tu prioridad no debería ser “marcarte”. Para definir necesitas algo que mostrar. Tu enfoque debería ser construir músculo de forma controlada, sin subir grasa innecesaria.",
+        warn: "Si intentas definir ahora, probablemente solo te vas a ver más flaco, no más atlético.",
       },
       recomp: {
         title: 'Tu etapa es <span class="em">RECOMPOSICIÓN CORPORAL</span>',
         keyword: "RECOMP",
-        text: "Tu caso no necesita una definición extrema ni un volumen agresivo. Necesitás recomposición: perder grasa, recuperar músculo y construir un sistema que puedas sostener con tu vida real.",
-        warn: "Si elegís mal la etapa, podés pasar meses bajando y subiendo sin verte realmente mejor.",
+        text: "Tu caso no necesita una definición extrema ni un volumen agresivo. Necesitas recomposición: perder grasa, recuperar músculo y construir un sistema que puedas sostener con tu vida real.",
+        warn: "Si eliges mal la etapa, puedes pasar meses bajando y subiendo sin verte realmente mejor.",
       },
       sistema: {
-        title: 'Antes de definir o subir, necesitás <span class="em">ORDENAR TU SISTEMA</span>',
+        title: 'Antes de definir o subir, necesitas <span class="em">ORDENAR TU SISTEMA</span>',
         keyword: "AGENDA",
-        text: "Tu problema no es elegir entre definir o subir. Tu primer problema es que no tenés un sistema que aguante tu semana real. Antes de pensar en etapas avanzadas, necesitás ordenar entrenamiento, comida, sueño y seguimiento.",
-        warn: "Si intentás hacer una dieta perfecta con una vida impredecible, vas a volver al ciclo de empezar cada lunes.",
+        text: "Tu problema no es elegir entre definir o subir. Tu primer problema es que no tienes un sistema que aguante tu semana real. Antes de pensar en etapas avanzadas, necesitas ordenar entrenamiento, comida, sueño y seguimiento.",
+        warn: "Si intentas hacer una dieta perfecta con una vida impredecible, vas a volver al ciclo de empezar cada lunes.",
       },
     };
 
@@ -403,11 +402,11 @@
         wa.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else if (opt === 'B') {
         wa.classList.add('hidden');
-        soft.textContent = 'Perfecto. Cuando quieras retomarlo, guardá tu resultado (' + R.keyword + ') y escribinos con la palabra RECOMPOSICIÓN.';
+        soft.textContent = 'Perfecto. Cuando quieras retomarlo, guarda tu resultado (' + R.keyword + ') y escríbenos con la palabra RECOMPOSICIÓN.';
         soft.classList.remove('hidden');
       } else {
         wa.classList.add('hidden');
-        soft.textContent = 'Listo. Ya sabés qué etapa te toca: ' + R.keyword + '. Si más adelante querés el primer ajuste concreto, acá estamos.';
+        soft.textContent = 'Listo. Ya sabes qué etapa te toca: ' + R.keyword + '. Si más adelante quieres el primer ajuste concreto, aquí estamos.';
         soft.classList.remove('hidden');
       }
     }
