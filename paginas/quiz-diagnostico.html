@@ -184,6 +184,10 @@
        ========================================================== */
     const WHATSAPP = "521XXXXXXXXXX"; // <-- Número de Bastián con código de país, sin + ni espacios
 
+    // <-- Pega aquí la URL de tu Web App de Google Apps Script (termina en /exec).
+    //     Déjalo en "" mientras no lo tengas y no pasa nada: el quiz sigue funcionando.
+    const SHEETS_URL = "";
+
     /* ==========================================================
        PREGUNTAS
        r  = puntos hacia el resultado físico { subir, recomp, definir, sistema }
@@ -375,7 +379,33 @@
       // Disponible para tracking / CRM:
       console.log('[LEGIONARIOS] resultado:', best, '| lead score:', lead, '| tier:', tier);
 
+      // Enviar a Google Sheets (si está configurado)
+      sendToSheet({
+        fecha: new Date().toLocaleString('es-MX'),
+        resultado: RESULTS[best].keyword,   // DEFINIR / MÚSCULO / RECOMP / AGENDA
+        etapa: best,                        // definir / subir / recomp / sistema
+        leadScore: lead,
+        tier: tier,                         // ICP_ALTO / ICP_MEDIO / ICP_BAJO
+        respuestas: answers.map((ans, qi) => ans === null ? '' : QUESTIONS[qi].options[ans].t),
+      });
+
       renderResult();
+    }
+
+    // Manda los datos al Web App de Google Apps Script.
+    // Usa text/plain + no-cors para evitar bloqueos del navegador.
+    function sendToSheet(payload) {
+      if (!SHEETS_URL) return; // aún no configurado
+      try {
+        fetch(SHEETS_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+        });
+      } catch (e) {
+        console.warn('No se pudo enviar a Sheets:', e);
+      }
     }
 
     function renderResult() {
