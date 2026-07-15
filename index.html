@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legionarios · Banco de Recursos</title>
+  <style>
+    :root {
+      --bg: #0a0505;
+      --bg-2: #120909;
+      --panel: #160c0c;
+      --panel-2: #1c0f0f;
+      --line: #2a1616;
+      --red: #c1272d;
+      --red-bright: #e63946;
+      --text: #f4eded;
+      --muted: #9a8686;
+      --dim: #6b5555;
+      --mono: 'SF Mono', 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Tema claro */
+    body.light {
+      --bg: #f2eeee;
+      --bg-2: #e9e3e3;
+      --panel: #ffffff;
+      --panel-2: #f7f2f2;
+      --line: #ddd0d0;
+      --text: #1a1010;
+      --muted: #6b5555;
+      --dim: #a08a8a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.5;
+      min-height: 100vh;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 46px 46px;
+      background-position: center top;
+      transition: background-color .25s, color .25s;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 15% 0%, rgba(193,39,45,.16), transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+
+    /* ---------- HEADER ---------- */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0; gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 16px; }
+    .logo {
+      width: 52px; height: 52px; flex: none;
+      background: var(--red); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 20px; letter-spacing: 1px;
+      border: 1px solid rgba(255,255,255,.15);
+    }
+    .brand-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--red-bright); text-transform: uppercase; }
+    .brand-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .head-actions { display: flex; gap: 10px; }
+    .btn {
+      font-family: var(--mono); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      background: transparent; color: var(--text); border: 1px solid var(--line);
+      padding: 10px 16px; cursor: pointer; transition: .15s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn:hover { border-color: var(--red); color: var(--red-bright); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); display: inline-block; }
+
+    /* ---------- HERO ---------- */
+    .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; padding: 48px 0 56px; align-items: start; }
+    .section-label { font-family: var(--mono); font-size: 12px; letter-spacing: 4px; color: var(--red-bright); text-transform: uppercase; margin-bottom: 20px; }
+    .title-1 { font-size: clamp(64px, 12vw, 150px); font-weight: 800; line-height: .82; letter-spacing: -3px; }
+    .title-2 {
+      font-size: clamp(52px, 9vw, 112px); font-weight: 800; line-height: .82; letter-spacing: -2px;
+      color: transparent; -webkit-text-stroke: 1.5px var(--dim);
+    }
+    .hero-lead { font-size: 17px; font-weight: 600; margin: 28px 0 12px; max-width: 460px; }
+    .hero-desc { color: var(--muted); max-width: 460px; }
+
+    /* Pipeline card */
+    .pipeline {
+      background: var(--panel); border: 1px solid var(--line);
+      position: relative; overflow: hidden;
+    }
+    .pipeline::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 8px; background: var(--red); }
+    .pipeline-head { font-family: var(--mono); font-size: 12px; letter-spacing: 3px; color: var(--red-bright); text-transform: uppercase; padding: 26px 28px 22px; }
+    .pipeline-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 28px; border-top: 1px solid var(--line);
+    }
+    .pipeline-row span { color: var(--muted); }
+    .pipeline-row b { font-size: 34px; font-weight: 800; }
+
+    /* ---------- STATS ---------- */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); background: var(--bg-2); }
+    .stat { padding: 30px 32px; border-right: 1px solid var(--line); }
+    .stat:last-child { border-right: none; }
+    .stat b { font-size: 52px; font-weight: 800; color: var(--red-bright); display: block; line-height: 1; }
+    .stat span { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 12px; display: block; }
+
+    /* ---------- SEARCH ---------- */
+    .search-bar { display: flex; gap: 0; margin: 26px 0 40px; }
+    #search {
+      flex: 1; background: var(--panel); border: 1px solid var(--line); border-right: none;
+      color: var(--text); font-family: var(--mono); font-size: 14px; letter-spacing: 1px;
+      padding: 20px 24px; outline: none;
+    }
+    #search::placeholder { color: var(--dim); }
+    #search:focus { border-color: var(--red); }
+    .new-btn {
+      background: var(--red); color: #fff; border: none; padding: 0 28px;
+      font-family: var(--mono); font-size: 12px; letter-spacing: 2px; font-weight: 700;
+      cursor: pointer; transition: .15s;
+    }
+    .new-btn:hover { background: var(--red-bright); }
+
+    /* ---------- CARDS ---------- */
+    .cards-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .cards-head .section-label { margin: 0; }
+    .cards-count { font-family: var(--mono); font-size: 12px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding-bottom: 80px; }
+
+    .card {
+      background: var(--panel); border: 1px solid var(--line);
+      padding: 26px; position: relative; overflow: hidden;
+      text-decoration: none; color: inherit; display: flex; flex-direction: column;
+      min-height: 260px; transition: .18s;
+    }
+    .card:hover { border-color: var(--red); transform: translateY(-3px); background: var(--panel-2); }
+    .card-index {
+      position: absolute; right: 12px; bottom: 40px;
+      font-size: 88px; font-weight: 800; color: var(--line); line-height: 1; z-index: 0;
+      user-select: none;
+    }
+    .card-tags { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--red-bright); text-transform: uppercase; position: relative; z-index: 1; }
+    .card-estado {
+      position: absolute; top: 22px; right: 22px; z-index: 2;
+      font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+      border: 1px solid var(--line); padding: 6px 10px; color: var(--muted);
+    }
+    .card-estado.envivo { color: #4ade80; border-color: #2c5c3c; }
+    .card-estado.enviada { color: var(--red-bright); border-color: var(--red); }
+    .card-title { font-size: 30px; font-weight: 800; letter-spacing: -.5px; margin: 20px 0 12px; position: relative; z-index: 1; text-transform: uppercase; }
+    .card-desc { color: var(--muted); font-size: 14px; position: relative; z-index: 1; flex: 1; }
+    .card-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 22px; position: relative; z-index: 1; }
+    .card-date { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; }
+    .card-arrow {
+      width: 42px; height: 42px; border: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: center; color: var(--muted); transition: .15s;
+    }
+    .card:hover .card-arrow { border-color: var(--red); color: var(--red-bright); }
+
+    .empty { grid-column: 1 / -1; padding: 60px; text-align: center; color: var(--dim); font-family: var(--mono); letter-spacing: 1px; border: 1px dashed var(--line); }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; gap: 32px; }
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 620px) {
+      .stats { grid-template-columns: 1fr; }
+      .stat { border-right: none; border-bottom: 1px solid var(--line); }
+      .grid { grid-template-columns: 1fr; }
+      .search-bar { flex-direction: column; }
+      #search { border-right: 1px solid var(--line); }
+      .new-btn { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="logo">LG</div>
+        <div>
+          <div class="brand-eyebrow">Legionarios · Recursos</div>
+          <div class="brand-sub">Banco interno de páginas, auditorías y quizzes</div>
+        </div>
+      </div>
+      <div class="head-actions">
+        <span class="btn">Uso interno</span>
+        <button class="btn" id="theme-toggle"><span class="dot"></span> <span id="theme-label">Tema claro</span></button>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div>
+        <div class="section-label">01 — Banco de recursos</div>
+        <h1 class="title-1">EL</h1>
+        <h1 class="title-2">ARSENAL</h1>
+        <p class="hero-lead">Páginas, quizzes y diagnósticos construidos para el proyecto Legionarios.</p>
+        <p class="hero-desc">Una vista rápida para organizar, rastrear y abrir cada recurso sin perder tiempo buscando archivos sueltos.</p>
+      </div>
+      <div class="pipeline">
+        <div class="pipeline-head">Estado del pipeline</div>
+        <div class="pipeline-row"><span>Páginas creadas</span><b id="pl-total">0</b></div>
+        <div class="pipeline-row"><span>En vivo</span><b id="pl-live">0</b></div>
+        <div class="pipeline-row"><span>Enviadas</span><b id="pl-sent">0</b></div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats">
+      <div class="stat"><b id="st-total">0</b><span>Páginas creadas</span></div>
+      <div class="stat"><b id="st-live">0</b><span>En vivo</span></div>
+      <div class="stat"><b id="st-sent">0</b><span>Enviadas</span></div>
+    </section>
+
+    <!-- SEARCH -->
+    <div class="search-bar">
+      <input id="search" type="text" placeholder="Busca por nombre, nicho o tipo..." />
+      <button class="new-btn">+ NUEVA PÁGINA</button>
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards-head">
+      <div class="section-label">02 — Todas las páginas</div>
+      <div class="cards-count"><span id="visible-count">0</span> recursos visibles</div>
+    </div>
+    <div class="grid" id="grid"></div>
+
+  </div>
+
+  <script src="resources.js"></script>
+  <script>
+    const grid = document.getElementById('grid');
+    const search = document.getElementById('search');
+
+    const pad = (n) => String(n).padStart(2, '0');
+    const norm = (s) => (s || '').toLowerCase();
+    const estadoClass = (e) => {
+      const v = norm(e);
+      if (v.includes('vivo')) return 'envivo';
+      if (v.includes('enviad')) return 'enviada';
+      return '';
+    };
+
+    function updateStats() {
+      const total = RECURSOS.length;
+      const live = RECURSOS.filter(r => norm(r.estado).includes('vivo')).length;
+      const sent = RECURSOS.filter(r => norm(r.estado).includes('enviad')).length;
+      ['pl-total','st-total'].forEach(id => document.getElementById(id).textContent = total);
+      ['pl-live','st-live'].forEach(id => document.getElementById(id).textContent = live);
+      ['pl-sent','st-sent'].forEach(id => document.getElementById(id).textContent = sent);
+    }
+
+    function render(filter = '') {
+      const f = norm(filter);
+      const items = RECURSOS
+        .map((r, i) => ({ r, i }))
+        .filter(({ r }) => {
+          if (!f) return true;
+          const hay = [r.titulo, r.desc, (r.tags || []).join(' '), r.estado].map(norm).join(' ');
+          return hay.includes(f);
+        });
+
+      document.getElementById('visible-count').textContent = items.length;
+
+      if (!items.length) {
+        grid.innerHTML = '<div class="empty">No hay recursos que coincidan.</div>';
+        return;
+      }
+
+      grid.innerHTML = items.map(({ r, i }) => {
+        const href = r.url && r.url !== '#' ? r.url : '#';
+        const target = href !== '#' ? ' target="_blank" rel="noopener"' : '';
+        return `
+          <a class="card" href="${href}"${target}>
+            <div class="card-estado ${estadoClass(r.estado)}">${r.estado || 'BORRADOR'}</div>
+            <div class="card-tags">${(r.tags || []).join(' · ')}</div>
+            <div class="card-title">${r.titulo || 'Sin título'}</div>
+            <div class="card-desc">${r.desc || ''}</div>
+            <div class="card-foot">
+              <span class="card-date">${r.fecha || ''}</span>
+              <span class="card-arrow">→</span>
+            </div>
+            <div class="card-index">${pad(i + 1)}</div>
+          </a>`;
+      }).join('');
+    }
+
+    // Theme toggle
+    const toggle = document.getElementById('theme-toggle');
+    const label = document.getElementById('theme-label');
+    toggle.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      label.textContent = document.body.classList.contains('light') ? 'Tema oscuro' : 'Tema claro';
+    });
+
+    search.addEventListener('input', (e) => render(e.target.value));
+
+    updateStats();
+    render();
+  </script>
+</body>
+</html>

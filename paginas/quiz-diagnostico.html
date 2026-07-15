@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Definir, subir o recomponer? · Diagnóstico de 5 minutos</title>
+  <style>
+    :root {
+      --bg: #0a0505;
+      --panel: #160c0c;
+      --panel-2: #1c0f0f;
+      --line: #2a1616;
+      --red: #c1272d;
+      --red-bright: #e63946;
+      --green: #4ade80;
+      --text: #f4eded;
+      --muted: #9a8686;
+      --dim: #6b5555;
+      --mono: 'SF Mono', 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text); font-family: var(--sans);
+      line-height: 1.55; min-height: 100vh;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 46px 46px;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse at 50% -10%, rgba(193,39,45,.20), transparent 55%);
+    }
+    .wrap { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 0 24px; }
+
+    /* topbar */
+    .topbar { display: flex; align-items: center; gap: 12px; padding: 22px 0; }
+    .logo { width: 40px; height: 40px; background: var(--red); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; letter-spacing: 1px; }
+    .topbar .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 3px; color: var(--red-bright); text-transform: uppercase; }
+    .back { margin-left: auto; font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--dim); text-decoration: none; text-transform: uppercase; }
+    .back:hover { color: var(--red-bright); }
+
+    .screen { display: none; padding: 30px 0 90px; }
+    .screen.active { display: block; animation: fade .3s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* ---------- HERO ---------- */
+    .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 4px; color: var(--red-bright); text-transform: uppercase; margin-bottom: 22px; }
+    h1 { font-size: clamp(40px, 8vw, 68px); font-weight: 800; line-height: .95; letter-spacing: -1.5px; }
+    .lead { font-size: 18px; color: var(--text); margin: 26px 0 18px; }
+    .filter-box { border-left: 3px solid var(--red); background: var(--panel); padding: 18px 22px; color: var(--muted); margin: 24px 0 34px; font-size: 15px; }
+    .filter-box b { color: var(--text); }
+
+    .cta {
+      display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
+      background: var(--red); color: #fff; border: none;
+      font-family: var(--mono); font-size: 14px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;
+      padding: 20px 34px; transition: .15s; text-decoration: none;
+    }
+    .cta:hover { background: var(--red-bright); transform: translateY(-2px); }
+    .cta.wa { background: #1f9d55; }
+    .cta.wa:hover { background: #25b862; }
+    .cta.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+    .cta.ghost:hover { color: var(--red-bright); border-color: var(--red); transform: none; }
+    .meta-note { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--dim); margin-top: 18px; text-transform: uppercase; }
+
+    /* ---------- QUIZ ---------- */
+    .progress-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--mono); font-size: 12px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+    .progress-track { height: 4px; background: var(--line); margin-bottom: 40px; }
+    .progress-fill { height: 100%; background: var(--red); width: 0; transition: width .3s; }
+
+    .q-title { font-size: 26px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 8px; }
+    .q-sub { color: var(--muted); margin-bottom: 26px; }
+
+    .options { display: flex; flex-direction: column; gap: 12px; }
+    .option {
+      display: flex; align-items: center; gap: 16px; text-align: left; cursor: pointer;
+      background: var(--panel); border: 1px solid var(--line); color: var(--text);
+      padding: 18px 20px; font-size: 16px; font-family: var(--sans); transition: .13s; width: 100%;
+    }
+    .option:hover { border-color: var(--red); background: var(--panel-2); transform: translateX(4px); }
+    .option .letter { font-family: var(--mono); font-size: 13px; color: var(--red-bright); border: 1px solid var(--line); width: 30px; height: 30px; flex: none; display: flex; align-items: center; justify-content: center; }
+    .option:hover .letter { border-color: var(--red); }
+
+    .nav-row { margin-top: 34px; }
+    .prev-btn { background: none; border: none; color: var(--dim); font-family: var(--mono); font-size: 12px; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; }
+    .prev-btn:hover { color: var(--red-bright); }
+
+    /* ---------- RESULT ---------- */
+    .result-badge { font-family: var(--mono); font-size: 12px; letter-spacing: 4px; color: var(--red-bright); text-transform: uppercase; margin-bottom: 16px; }
+    .result-title { font-size: clamp(34px, 7vw, 54px); font-weight: 800; line-height: 1; letter-spacing: -1px; margin-bottom: 24px; }
+    .result-title .em { color: var(--red-bright); }
+    .result-text { font-size: 17px; color: var(--text); margin-bottom: 22px; }
+    .warn { border: 1px solid var(--red); background: rgba(193,39,45,.08); padding: 18px 22px; margin-bottom: 28px; }
+    .warn .warn-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--red-bright); text-transform: uppercase; display: block; margin-bottom: 6px; }
+    .warn p { color: var(--muted); }
+
+    .divider { height: 1px; background: var(--line); margin: 40px 0; }
+
+    .final-q { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+    .soft-msg { background: var(--panel); border-left: 3px solid var(--red); padding: 18px 22px; color: var(--muted); margin-top: 8px; }
+    .soft-msg.hidden, .wa-block.hidden { display: none; }
+    .wa-block { margin-top: 8px; }
+    .wa-preview { background: var(--panel); border: 1px solid var(--line); padding: 16px 20px; font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.6; }
+
+    @media (max-width: 520px) {
+      .cta { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="logo">LG</div>
+      <span class="eyebrow">Legionarios · Diagnóstico</span>
+      <a class="back" href="../index.html">← Banco</a>
+    </div>
+
+    <!-- ============ HERO ============ -->
+    <section class="screen active" id="screen-hero">
+      <div class="kicker">Diagnóstico de 5 minutos</div>
+      <h1>¿Definir, subir o<br>recomponer?</h1>
+      <p class="lead">Hacé este diagnóstico y descubrí qué etapa te toca según tu grasa actual, músculo, experiencia entrenando y estilo de vida.</p>
+      <div class="filter-box">
+        No es una rutina gratis. Es un diagnóstico para saber <b>qué camino te conviene tomar</b> si querés verte mejor sin perder meses haciendo lo incorrecto.
+      </div>
+      <button class="cta" onclick="startQuiz()">Empezar diagnóstico →</button>
+      <div class="meta-note">12 preguntas · ~5 minutos · Resultado personalizado</div>
+    </section>
+
+    <!-- ============ QUIZ ============ -->
+    <section class="screen" id="screen-quiz">
+      <div class="progress-head">
+        <span id="q-counter">Pregunta 01 / 12</span>
+        <span id="q-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+      <h2 class="q-title" id="q-title"></h2>
+      <p class="q-sub" id="q-sub" style="display:none"></p>
+      <div class="options" id="options"></div>
+
+      <div class="nav-row">
+        <button class="prev-btn" id="prev-btn" onclick="prevQuestion()" style="display:none">← Anterior</button>
+      </div>
+    </section>
+
+    <!-- ============ RESULT ============ -->
+    <section class="screen" id="screen-result">
+      <div class="result-badge">Tu resultado</div>
+      <h2 class="result-title" id="result-title"></h2>
+      <p class="result-text" id="result-text"></p>
+      <div class="warn">
+        <span class="warn-label">Cuidado</span>
+        <p id="result-warn"></p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="final-q">¿Querés que Bastián o su equipo revise tu resultado?</div>
+      <div class="options">
+        <button class="option" onclick="finalAnswer('A')"><span class="letter">A</span> Sí, quiero saber qué harían primero en mi caso</button>
+        <button class="option" onclick="finalAnswer('B')"><span class="letter">B</span> Sí, pero más adelante</button>
+        <button class="option" onclick="finalAnswer('C')"><span class="letter">C</span> No, solo quería ver mi resultado</button>
+      </div>
+
+      <!-- WhatsApp block (respuesta A) -->
+      <div class="wa-block hidden" id="wa-block">
+        <div class="divider"></div>
+        <p class="result-text">Perfecto. Este es el mensaje que le vas a enviar al equipo. Solo tocá el botón:</p>
+        <div class="wa-preview" id="wa-preview"></div>
+        <a class="cta wa" id="wa-btn" target="_blank" rel="noopener">Enviar mi resultado por WhatsApp</a>
+      </div>
+
+      <!-- Soft message (respuesta B / C) -->
+      <div class="soft-msg hidden" id="soft-msg"></div>
+    </section>
+  </div>
+
+  <script>
+    /* ==========================================================
+       CONFIG — editar antes de publicar
+       ========================================================== */
+    const WHATSAPP = "521XXXXXXXXXX"; // <-- Número de Bastián con código de país, sin + ni espacios
+
+    /* ==========================================================
+       PREGUNTAS
+       r  = puntos hacia el resultado físico { subir, recomp, definir, sistema }
+       lead = puntos hacia el score interno de lead (ICP)
+       ========================================================== */
+    const QUESTIONS = [
+      { q: "¿Cuál es tu edad?", options: [
+        { t: "Menos de 25", r: {}, lead: -4 },
+        { t: "25–29", r: {}, lead: 0 },
+        { t: "30–42", r: {}, lead: 3 },
+        { t: "43–50", r: {}, lead: 2 },
+        { t: "Más de 50", r: {}, lead: 0 },
+      ]},
+      { q: "¿Cómo describirías tu situación actual?", options: [
+        { t: "Soy estudiante o estoy empezando laboralmente", r: {}, lead: -1 },
+        { t: "Trabajo normal, horarios relativamente estables", r: {}, lead: 1 },
+        { t: "Profesionista, ejecutivo, emprendedor o dueño de negocio", r: {}, lead: 3 },
+        { t: "Tengo negocio/carrera demandante y poco tiempo libre", r: { sistema: 1 }, lead: 3 },
+      ]},
+      { q: "¿Cómo se ve una semana normal para vos?", options: [
+        { t: "Tengo bastante tiempo libre", r: {}, lead: 0 },
+        { t: "Rutina estable, pero me cuesta organizarme", r: { sistema: 1 }, lead: 1 },
+        { t: "Trabajo muchas horas y el entrenamiento queda al final", r: { sistema: 1 }, lead: 3 },
+        { t: "Vivo entre juntas, estrés, viajes, pendientes o comidas fuera", r: { sistema: 2 }, lead: 3 },
+      ]},
+      { q: "¿Cuál es tu mayor problema hoy?", options: [
+        { t: "No sé si definir o subir músculo", r: { recomp: 1 }, lead: 0 },
+        { t: "Me cuesta sostener la dieta", r: { sistema: 1 }, lead: 1 },
+        { t: "Entreno, pero no veo cambios claros", r: { recomp: 1 }, lead: 1 },
+        { t: "Empiezo bien y abandono cuando la semana se complica", r: { sistema: 2 }, lead: 2 },
+        { t: "Siento que mi cuerpo es la única área que no tengo bajo control", r: { sistema: 1, recomp: 1 }, lead: 2 },
+      ]},
+      { q: "¿Cómo describirías tu físico actual?", options: [
+        { t: "Delgado, pero sin mucha masa muscular", r: { subir: 2 }, lead: 0 },
+        { t: "Algo de músculo, pero con grasa acumulada", r: { recomp: 2 }, lead: 0 },
+        { t: "Sobrepeso moderado y poca masa muscular visible", r: { recomp: 2 }, lead: 0 },
+        { t: "Me veo grande, pero tapado", r: { definir: 1, recomp: 1 }, lead: 0 },
+        { t: "Ya estoy relativamente definido", r: { definir: 2 }, lead: 0 },
+      ]},
+      { q: "¿Cuánto músculo sentís que tenés hoy?", options: [
+        { t: "Muy poco, nunca construí una buena base", r: { subir: 2 }, lead: 0 },
+        { t: "Algo tengo, pero me falta forma", r: { recomp: 1, subir: 1 }, lead: 0 },
+        { t: "Entrené antes y sé que puedo recuperar", r: { recomp: 2 }, lead: 0 },
+        { t: "Tengo buena base, pero estoy tapado de grasa", r: { definir: 1, recomp: 1 }, lead: 0 },
+        { t: "Tengo buena base y quiero afinar", r: { definir: 2 }, lead: 0 },
+      ]},
+      { q: "¿Hace cuánto entrenás o intentás entrenar en serio?", options: [
+        { t: "Nunca fui constante", r: { sistema: 2 }, lead: 0 },
+        { t: "Menos de 6 meses", r: { subir: 1, sistema: 1 }, lead: 0 },
+        { t: "6–12 meses", r: { recomp: 1 }, lead: 0 },
+        { t: "1–3 años, pero inconsistente", r: { sistema: 2 }, lead: 0 },
+        { t: "Más de 3 años", r: { definir: 1, recomp: 1 }, lead: 0 },
+      ]},
+      { q: "¿Qué suele romperte el progreso?", options: [
+        { t: "Falta de conocimiento", r: {}, lead: 0 },
+        { t: "Falta de motivación", r: { sistema: 1 }, lead: 0 },
+        { t: "Falta de tiempo", r: { sistema: 1 }, lead: 3 },
+        { t: "Trabajo, viajes, estrés o comidas fuera", r: { sistema: 2 }, lead: 3 },
+        { t: "No tener seguimiento ni ajustes", r: { sistema: 2 }, lead: 3 },
+      ]},
+      { q: "¿Qué probaste antes?", options: [
+        { t: "Nada serio todavía", r: {}, lead: 0 },
+        { t: "Rutinas de YouTube", r: {}, lead: 1 },
+        { t: "Apps o planes genéricos", r: {}, lead: 1 },
+        { t: "Dietas de moda", r: {}, lead: 1 },
+        { t: "Ya probé de todo y siempre vuelvo a empezar", r: { sistema: 1 }, lead: 2 },
+      ]},
+      { q: "¿Cuál es tu objetivo principal en los próximos 90 días?", options: [
+        { t: "Bajar grasa rápido", r: { definir: 1 }, lead: 0 },
+        { t: "Ganar músculo", r: { subir: 2 }, lead: 0 },
+        { t: "Bajar grasa y ganar músculo al mismo tiempo", r: { recomp: 2 }, lead: 2 },
+        { t: "Recuperar control, energía y verme mejor", r: { recomp: 1, sistema: 1 }, lead: 2 },
+        { t: "Mejorar por salud", r: { recomp: 1 }, lead: 2 },
+      ]},
+      { q: "¿Qué tan dispuesto estás a seguir un plan si está adaptado a tu vida real?", options: [
+        { t: "Estoy mirando opciones", r: {}, lead: 0 },
+        { t: "Me interesa, pero no sé si podría sostenerlo", r: {}, lead: 1 },
+        { t: "Si tiene sentido, lo ejecuto", r: {}, lead: 2 },
+        { t: "Necesito que alguien me diga exactamente qué hacer y lo hago", r: {}, lead: 2 },
+        { t: "Quiero algo gratis para probar", r: {}, lead: -4 },
+      ]},
+      { q: "¿Qué tipo de ayuda estás buscando ahora?", options: [
+        { t: "Una rutina gratis", r: {}, lead: -4 },
+        { t: "Ideas generales para mejorar", r: {}, lead: 0 },
+        { t: "Una guía clara para saber qué etapa me toca", r: {}, lead: 1 },
+        { t: "Un plan adaptado a mi agenda", r: {}, lead: 3 },
+        { t: "Seguimiento para dejar de improvisar", r: {}, lead: 3 },
+      ]},
+    ];
+
+    /* ==========================================================
+       RESULTADOS
+       ========================================================== */
+    const RESULTS = {
+      definir: {
+        title: 'Tu etapa es <span class="em">DEFINIR</span>',
+        keyword: "DEFINIR",
+        text: "Tu prioridad no es hacer más volumen ni cambiar todo. Tu cuerpo ya tiene una base; lo que necesitás es perder grasa sin sacrificar músculo ni energía.",
+        warn: "Si definís de forma agresiva, podés verte más chico, perder rendimiento y abandonar rápido.",
+      },
+      subir: {
+        title: 'Tu etapa es <span class="em">SUBIR MÚSCULO</span>',
+        keyword: "MÚSCULO",
+        text: "Hoy tu prioridad no debería ser “marcarte”. Para definir necesitás algo que mostrar. Tu enfoque debería ser construir músculo de forma controlada, sin subir grasa innecesaria.",
+        warn: "Si intentás definir ahora, probablemente solo te vas a ver más flaco, no más atlético.",
+      },
+      recomp: {
+        title: 'Tu etapa es <span class="em">RECOMPOSICIÓN CORPORAL</span>',
+        keyword: "RECOMP",
+        text: "Tu caso no necesita una definición extrema ni un volumen agresivo. Necesitás recomposición: perder grasa, recuperar músculo y construir un sistema que puedas sostener con tu vida real.",
+        warn: "Si elegís mal la etapa, podés pasar meses bajando y subiendo sin verte realmente mejor.",
+      },
+      sistema: {
+        title: 'Antes de definir o subir, necesitás <span class="em">ORDENAR TU SISTEMA</span>',
+        keyword: "AGENDA",
+        text: "Tu problema no es elegir entre definir o subir. Tu primer problema es que no tenés un sistema que aguante tu semana real. Antes de pensar en etapas avanzadas, necesitás ordenar entrenamiento, comida, sueño y seguimiento.",
+        warn: "Si intentás hacer una dieta perfecta con una vida impredecible, vas a volver al ciclo de empezar cada lunes.",
+      },
+    };
+
+    /* ==========================================================
+       ESTADO
+       ========================================================== */
+    let current = 0;
+    const answers = new Array(QUESTIONS.length).fill(null); // guarda índice de opción
+    let finalResultKey = null;
+
+    const el = (id) => document.getElementById(id);
+    const show = (id) => {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      el(id).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    function startQuiz() { current = 0; show('screen-quiz'); renderQuestion(); }
+
+    function renderQuestion() {
+      const total = QUESTIONS.length;
+      const Q = QUESTIONS[current];
+      el('q-counter').textContent = `Pregunta ${String(current + 1).padStart(2, '0')} / ${total}`;
+      const pct = Math.round((current / total) * 100);
+      el('q-pct').textContent = pct + '%';
+      el('progress-fill').style.width = pct + '%';
+      el('q-title').textContent = Q.q;
+      el('prev-btn').style.display = current === 0 ? 'none' : 'inline-block';
+
+      const letters = ['A','B','C','D','E'];
+      el('options').innerHTML = Q.options.map((o, i) => `
+        <button class="option" onclick="answer(${i})">
+          <span class="letter">${letters[i]}</span> ${o.t}
+        </button>`).join('');
+    }
+
+    function answer(i) {
+      answers[current] = i;
+      if (current < QUESTIONS.length - 1) {
+        current++;
+        renderQuestion();
+      } else {
+        el('progress-fill').style.width = '100%';
+        computeResult();
+      }
+    }
+
+    function prevQuestion() {
+      if (current > 0) { current--; renderQuestion(); }
+    }
+
+    function computeResult() {
+      const score = { subir: 0, recomp: 0, definir: 0, sistema: 0 };
+      let lead = 0;
+      answers.forEach((ans, qi) => {
+        if (ans === null) return;
+        const opt = QUESTIONS[qi].options[ans];
+        lead += opt.lead || 0;
+        for (const k in opt.r) score[k] += opt.r[k];
+      });
+
+      // Elegir resultado: máximo puntaje. Desempate: sistema > recomp > subir > definir
+      const order = ['sistema', 'recomp', 'subir', 'definir'];
+      let best = order[0];
+      order.forEach(k => { if (score[k] > score[best]) best = k; });
+      finalResultKey = best;
+
+      // Lead tier interno (no se muestra al usuario)
+      let tier = 'ICP_BAJO';
+      if (lead >= 12) tier = 'ICP_ALTO';
+      else if (lead >= 6) tier = 'ICP_MEDIO';
+      // Disponible para tracking / CRM:
+      console.log('[LEGIONARIOS] resultado:', best, '| lead score:', lead, '| tier:', tier);
+
+      renderResult();
+    }
+
+    function renderResult() {
+      const R = RESULTS[finalResultKey];
+      el('result-title').innerHTML = R.title;
+      el('result-text').textContent = R.text;
+      el('result-warn').textContent = R.warn;
+      el('wa-block').classList.add('hidden');
+      el('soft-msg').classList.add('hidden');
+      show('screen-result');
+    }
+
+    function finalAnswer(opt) {
+      const R = RESULTS[finalResultKey];
+      const soft = el('soft-msg');
+      const wa = el('wa-block');
+
+      if (opt === 'A') {
+        soft.classList.add('hidden');
+        const msg = `Hola, hice el diagnóstico de recomposición. Mi resultado fue: ${R.keyword}. Quiero saber qué ajuste harían primero en mi caso.`;
+        el('wa-preview').textContent = `“${msg}”`;
+        el('wa-btn').href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
+        wa.classList.remove('hidden');
+        wa.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (opt === 'B') {
+        wa.classList.add('hidden');
+        soft.textContent = 'Perfecto. Cuando quieras retomarlo, guardá tu resultado (' + R.keyword + ') y escribinos con la palabra RECOMPOSICIÓN.';
+        soft.classList.remove('hidden');
+      } else {
+        wa.classList.add('hidden');
+        soft.textContent = 'Listo. Ya sabés qué etapa te toca: ' + R.keyword + '. Si más adelante querés el primer ajuste concreto, acá estamos.';
+        soft.classList.remove('hidden');
+      }
+    }
+  </script>
+</body>
+</html>
