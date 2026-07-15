@@ -60,11 +60,16 @@
       padding: 20px 34px; transition: .15s; text-decoration: none;
     }
     .cta:hover { background: var(--red-bright); transform: translateY(-2px); }
-    .cta.wa { background: #1f9d55; }
-    .cta.wa:hover { background: #25b862; }
+    .cta.ig { background: linear-gradient(90deg, #c1272d, #e63946); }
+    .cta.ig:hover { filter: brightness(1.1); }
     .cta.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); }
     .cta.ghost:hover { color: var(--red-bright); border-color: var(--red); transform: none; }
     .meta-note { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--dim); margin-top: 18px; text-transform: uppercase; }
+
+    /* CTA final del resultado */
+    .cta-block { margin-top: 4px; }
+    .word-box { background: var(--panel); border: 1px solid var(--line); padding: 20px 24px; margin: 22px 0; font-size: 17px; color: var(--muted); text-align: center; }
+    .word-box .word { display: inline-block; font-family: var(--mono); font-weight: 800; font-size: 20px; letter-spacing: 3px; color: var(--red-bright); border: 1px solid var(--red); padding: 4px 14px; margin: 0 4px; }
 
     /* ---------- QUIZ ---------- */
     .progress-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--mono); font-size: 12px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
@@ -93,17 +98,8 @@
     .result-title { font-size: clamp(34px, 7vw, 54px); font-weight: 800; line-height: 1; letter-spacing: -1px; margin-bottom: 24px; }
     .result-title .em { color: var(--red-bright); }
     .result-text { font-size: 17px; color: var(--text); margin-bottom: 22px; }
-    .warn { border: 1px solid var(--red); background: rgba(193,39,45,.08); padding: 18px 22px; margin-bottom: 28px; }
-    .warn .warn-label { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--red-bright); text-transform: uppercase; display: block; margin-bottom: 6px; }
-    .warn p { color: var(--muted); }
 
     .divider { height: 1px; background: var(--line); margin: 40px 0; }
-
-    .final-q { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
-    .soft-msg { background: var(--panel); border-left: 3px solid var(--red); padding: 18px 22px; color: var(--muted); margin-top: 8px; }
-    .soft-msg.hidden, .wa-block.hidden { display: none; }
-    .wa-block { margin-top: 8px; }
-    .wa-preview { background: var(--panel); border: 1px solid var(--line); padding: 16px 20px; font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.6; }
 
     @media (max-width: 520px) {
       .cta { width: 100%; justify-content: center; }
@@ -151,30 +147,17 @@
       <div class="result-badge">Tu resultado</div>
       <h2 class="result-title" id="result-title"></h2>
       <p class="result-text" id="result-text"></p>
-      <div class="warn">
-        <span class="warn-label">Cuidado</span>
-        <p id="result-warn"></p>
-      </div>
 
       <div class="divider"></div>
 
-      <div class="final-q">¿Quieres que Bastián o su equipo revise tu resultado?</div>
-      <div class="options">
-        <button class="option" onclick="finalAnswer('A')"><span class="letter">A</span> Sí, quiero saber qué harían primero en mi caso</button>
-        <button class="option" onclick="finalAnswer('B')"><span class="letter">B</span> Sí, pero más adelante</button>
-        <button class="option" onclick="finalAnswer('C')"><span class="letter">C</span> No, solo quería ver mi resultado</button>
+      <!-- CTA dinámico según el lead -->
+      <div class="cta-block">
+        <p class="result-text" id="cta-text"></p>
+        <div class="word-box">
+          Manda la palabra <span class="word" id="cta-word"></span> por Instagram
+        </div>
+        <a class="cta ig" id="ig-btn" href="#" target="_blank" rel="noopener">Ir al Instagram de Bastián →</a>
       </div>
-
-      <!-- WhatsApp block (respuesta A) -->
-      <div class="wa-block hidden" id="wa-block">
-        <div class="divider"></div>
-        <p class="result-text">Perfecto. Este es el mensaje que le vas a enviar al equipo. Solo toca el botón:</p>
-        <div class="wa-preview" id="wa-preview"></div>
-        <a class="cta wa" id="wa-btn" target="_blank" rel="noopener">Enviar mi resultado por WhatsApp</a>
-      </div>
-
-      <!-- Soft message (respuesta B / C) -->
-      <div class="soft-msg hidden" id="soft-msg"></div>
     </section>
   </div>
 
@@ -182,10 +165,11 @@
     /* ==========================================================
        CONFIG — editar antes de publicar
        ========================================================== */
-    const WHATSAPP = "521XXXXXXXXXX"; // <-- Número de Bastián con código de país, sin + ni espacios
+    // Instagram de Bastián: a donde mandamos al prospecto a escribir la palabra.
+    const INSTAGRAM_URL = "https://www.instagram.com/bastianalmaraz/";
 
-    // <-- Pega aquí la URL de tu Web App de Google Apps Script (termina en /exec).
-    //     Déjalo en "" mientras no lo tengas y no pasa nada: el quiz sigue funcionando.
+    // URL del Web App de Google Apps Script (termina en /exec).
+    // Déjalo en "" si quieres desactivar el guardado en la hoja.
     const SHEETS_URL = "https://script.google.com/macros/s/AKfycbymRubk54ygzd9obype2ZCXNKfmTTStRRLTETAb20P3KWDqKdaD2-D9jtrAkwuePleo/exec";
 
     /* ==========================================================
@@ -194,87 +178,89 @@
        lead = puntos hacia el score interno de lead (ICP)
        ========================================================== */
     const QUESTIONS = [
-      { q: "¿Cuál es tu edad?", options: [
-        { t: "Menos de 25", r: {}, lead: -4 },
-        { t: "25–29", r: {}, lead: 0 },
-        { t: "30–42", r: {}, lead: 3 },
-        { t: "43–50", r: {}, lead: 2 },
-        { t: "Más de 50", r: {}, lead: 0 },
+      { q: "¿Qué edad tienes?", options: [
+        { t: "Menos de 25 años", r: {}, lead: -4 },
+        { t: "25–29 años", r: {}, lead: 0 },
+        { t: "30–42 años", r: {}, lead: 3 },
+        { t: "43–50 años", r: {}, lead: 2 },
+        { t: "Más de 50 años", r: {}, lead: 0 },
       ]},
-      { q: "¿Cómo describirías tu situación actual?", options: [
-        { t: "Soy estudiante o estoy empezando laboralmente", r: {}, lead: 0 },
-        { t: "Trabajo normal, horarios relativamente estables", r: {}, lead: 0 },
-        { t: "Profesionista, ejecutivo, emprendedor o dueño de negocio", r: {}, lead: 3 },
-        { t: "Tengo negocio/carrera demandante y poco tiempo libre", r: { sistema: 1 }, lead: 3 },
+      { q: "¿Cómo describirías tu físico hoy?", options: [
+        { t: "Delgado, pero sin mucho músculo", r: { subir: 2 }, lead: 0 },
+        { t: "Delgado con algo de pancita", r: { subir: 1, recomp: 1 }, lead: 0 },
+        { t: "Con algo de músculo, pero tapado", r: { recomp: 2 }, lead: 0 },
+        { t: "Con sobrepeso y poca masa muscular visible", r: { recomp: 2 }, lead: 0 },
+        { t: "Con buena base muscular, pero quiero marcarme más", r: { definir: 2 }, lead: 0 },
       ]},
-      { q: "¿Cómo se ve una semana normal para ti?", options: [
-        { t: "Tengo bastante tiempo libre", r: {}, lead: 0 },
-        { t: "Rutina estable, pero me cuesta organizarme", r: { sistema: 1 }, lead: 0 },
-        { t: "Trabajo muchas horas y el entrenamiento queda al final", r: { sistema: 1 }, lead: 3 },
-        { t: "Vivo entre juntas, estrés, viajes, pendientes o comidas fuera", r: { sistema: 2 }, lead: 3 },
-      ]},
-      { q: "¿Cuál es tu mayor problema hoy?", options: [
-        { t: "No sé si definir o subir músculo", r: { recomp: 1 }, lead: 0 },
-        { t: "Me cuesta sostener la dieta", r: { sistema: 1 }, lead: 0 },
-        { t: "Entreno, pero no veo cambios claros", r: { recomp: 1 }, lead: 0 },
-        { t: "Empiezo bien y abandono cuando la semana se complica", r: { sistema: 2 }, lead: 0 },
-        { t: "Siento que mi cuerpo es la única área que no tengo bajo control", r: { sistema: 1, recomp: 1 }, lead: 0 },
-      ]},
-      { q: "¿Cómo describirías tu físico actual?", options: [
-        { t: "Delgado, pero sin mucha masa muscular", r: { subir: 2 }, lead: 0 },
-        { t: "Algo de músculo, pero con grasa acumulada", r: { recomp: 2 }, lead: 0 },
-        { t: "Sobrepeso moderado y poca masa muscular visible", r: { recomp: 2 }, lead: 0 },
-        { t: "Me veo grande, pero tapado", r: { definir: 1, recomp: 1 }, lead: 0 },
-        { t: "Ya estoy relativamente definido", r: { definir: 2 }, lead: 0 },
-      ]},
-      { q: "¿Cuánto músculo sientes que tienes hoy?", options: [
-        { t: "Muy poco, nunca construí una buena base", r: { subir: 2 }, lead: 0 },
-        { t: "Algo tengo, pero me falta forma", r: { recomp: 1, subir: 1 }, lead: 0 },
-        { t: "Entrené antes y sé que puedo recuperar", r: { recomp: 2 }, lead: 0 },
-        { t: "Tengo buena base, pero estoy tapado de grasa", r: { definir: 1, recomp: 1 }, lead: 0 },
-        { t: "Tengo buena base y quiero afinar", r: { definir: 2 }, lead: 0 },
-      ]},
-      { q: "¿Hace cuánto entrenas o intentas entrenar en serio?", options: [
-        { t: "Nunca fui constante", r: { sistema: 2 }, lead: 0 },
-        { t: "Menos de 6 meses", r: { subir: 1, sistema: 1 }, lead: 0 },
-        { t: "6–12 meses", r: { recomp: 1 }, lead: 0 },
-        { t: "1–3 años, pero inconsistente", r: { sistema: 2 }, lead: 0 },
-        { t: "Más de 3 años", r: { definir: 1, recomp: 1 }, lead: 0 },
-      ]},
-      { q: "¿Qué suele romperte el progreso?", options: [
-        { t: "Falta de conocimiento", r: {}, lead: 0 },
-        { t: "Falta de motivación", r: { sistema: 1 }, lead: 0 },
-        { t: "Falta de tiempo", r: { sistema: 1 }, lead: 3 },
-        { t: "Trabajo, viajes, estrés o comidas fuera", r: { sistema: 2 }, lead: 3 },
-        { t: "No tener seguimiento ni ajustes", r: { sistema: 2 }, lead: 3 },
-      ]},
-      { q: "¿Qué probaste antes?", options: [
-        { t: "Nada serio todavía", r: {}, lead: 0 },
-        { t: "Rutinas de YouTube", r: {}, lead: 0 },
-        { t: "Apps o planes genéricos", r: {}, lead: 0 },
-        { t: "Dietas de moda", r: {}, lead: 0 },
-        { t: "Ya probé de todo y siempre vuelvo a empezar", r: { sistema: 1 }, lead: 2 },
-      ]},
-      { q: "¿Cuál es tu objetivo principal en los próximos 90 días?", options: [
-        { t: "Bajar grasa rápido", r: { definir: 1 }, lead: 0 },
-        { t: "Ganar músculo", r: { subir: 2 }, lead: 0 },
+      { q: "¿Cuál dirías que es tu objetivo principal ahorita?", options: [
+        { t: "Bajar grasa porque me siento tapado", r: { definir: 1, recomp: 1 }, lead: 0 },
+        { t: "Ganar músculo porque me veo flaco o sin forma", r: { subir: 2 }, lead: 0 },
         { t: "Bajar grasa y ganar músculo al mismo tiempo", r: { recomp: 2 }, lead: 2 },
         { t: "Recuperar control, energía y verme mejor", r: { recomp: 1, sistema: 1 }, lead: 2 },
-        { t: "Mejorar por salud", r: { recomp: 1 }, lead: 2 },
+        { t: "No estoy seguro, justo por eso quiero hacer el diagnóstico", r: { sistema: 1 }, lead: 0 },
       ]},
-      { q: "¿Qué tan dispuesto estás a seguir un plan si está adaptado a tu vida real?", options: [
-        { t: "Estoy mirando opciones", r: {}, lead: 0 },
-        { t: "Me interesa, pero no sé si podría sostenerlo", r: {}, lead: 0 },
-        { t: "Si tiene sentido, lo ejecuto", r: {}, lead: 0 },
-        { t: "Necesito que alguien me diga exactamente qué hacer y lo hago", r: {}, lead: 0 },
-        { t: "Quiero algo gratis para probar", r: {}, lead: -4 },
+      { q: "¿Desde hace cuánto sientes que tu físico está estancado o fuera de control?", options: [
+        { t: "Hace unas semanas", r: {}, lead: 0 },
+        { t: "Hace 3–6 meses", r: { recomp: 1 }, lead: 0 },
+        { t: "Hace más de 6 meses", r: { recomp: 1 }, lead: 1 },
+        { t: "Hace más de 1 año", r: { recomp: 1, sistema: 1 }, lead: 2 },
+        { t: "Siento que llevo años intentando volver a estar bien", r: { sistema: 2 }, lead: 2 },
       ]},
-      { q: "¿Qué tipo de ayuda estás buscando ahora?", options: [
-        { t: "Una rutina gratis", r: {}, lead: -4 },
-        { t: "Ideas generales para mejorar", r: {}, lead: 0 },
-        { t: "Una guía clara para saber qué etapa me toca", r: {}, lead: 0 },
-        { t: "Un plan adaptado a mi agenda", r: {}, lead: 3 },
-        { t: "Seguimiento para dejar de improvisar", r: {}, lead: 3 },
+      { q: "¿Cómo se ve tu semana normalmente?", options: [
+        { t: "Tengo bastante tiempo libre", r: {}, lead: 0 },
+        { t: "Tengo horarios estables, pero me cuesta organizarme", r: { sistema: 1 }, lead: 0 },
+        { t: "Trabajo muchas horas y entrenar queda al final del día", r: { sistema: 1 }, lead: 3 },
+        { t: "Vivo entre juntas, estrés, viajes, pendientes o comidas fuera", r: { sistema: 2 }, lead: 3 },
+        { t: "Mi semana cambia todo el tiempo y me cuesta sostener cualquier plan", r: { sistema: 2 }, lead: 3 },
+      ]},
+      { q: "¿A qué te dedicas actualmente?", options: [
+        { t: "Estudio o apenas estoy empezando laboralmente", r: {}, lead: 0 },
+        { t: "Trabajo con horarios normales", r: {}, lead: 0 },
+        { t: "Soy profesionista", r: {}, lead: 3 },
+        { t: "Soy emprendedor / dueño de negocio", r: {}, lead: 3 },
+        { t: "Tengo un puesto demandante o de mucha responsabilidad", r: { sistema: 1 }, lead: 3 },
+      ]},
+      { q: "¿Cuánto tiempo llevas entrenando de forma constante?", options: [
+        { t: "Apenas voy empezando", r: { subir: 1, sistema: 1 }, lead: 0 },
+        { t: "Menos de 6 meses", r: { subir: 1 }, lead: 0 },
+        { t: "Entre 6 meses y 1 año", r: { recomp: 1 }, lead: 0 },
+        { t: "Más de 1 año, pero con muchas pausas", r: { sistema: 2 }, lead: 0 },
+        { t: "Más de 1 año constante", r: { definir: 1, recomp: 1 }, lead: 0 },
+      ]},
+      { q: "¿Has entrenado bien en algún momento de tu vida?", options: [
+        { t: "No, nunca he sido constante", r: { subir: 1, sistema: 2 }, lead: 0 },
+        { t: "Sí, pero hace años", r: { recomp: 1, sistema: 1 }, lead: 0 },
+        { t: "Sí, por temporadas", r: { recomp: 1, sistema: 1 }, lead: 0 },
+        { t: "Sí, y todavía mantengo algo de base", r: { definir: 1, recomp: 1 }, lead: 0 },
+        { t: "Sí, entreno bien actualmente", r: { definir: 2 }, lead: 0 },
+      ]},
+      { q: "¿Qué te cuesta más ahorita?", options: [
+        { t: "Saber qué objetivo elegir", r: { sistema: 1 }, lead: 0 },
+        { t: "Ser constante con el entrenamiento", r: { sistema: 2 }, lead: 2 },
+        { t: "Comer de forma ordenada", r: { sistema: 1 }, lead: 2 },
+        { t: "Ver cambios aunque entreno", r: { recomp: 1 }, lead: 2 },
+        { t: "No abandonar cuando se complica la semana", r: { sistema: 2 }, lead: 3 },
+      ]},
+      { q: "¿Cuántos días reales puedes entrenar por semana?", options: [
+        { t: "2 días", r: { sistema: 1 }, lead: 0 },
+        { t: "3 días", r: {}, lead: 0 },
+        { t: "4 días", r: {}, lead: 0 },
+        { t: "5 días o más", r: { definir: 1 }, lead: 0 },
+        { t: "Depende mucho de mi semana", r: { sistema: 2 }, lead: 0 },
+      ]},
+      { q: "¿Qué has intentado antes?", options: [
+        { t: "Nada serio todavía", r: { subir: 1 }, lead: 0 },
+        { t: "Rutinas de YouTube", r: {}, lead: 0 },
+        { t: "Apps o planes genéricos", r: {}, lead: 0 },
+        { t: "Dietas de moda", r: { recomp: 1 }, lead: 0 },
+        { t: "Ya probé de todo y siempre vuelvo a empezar", r: { sistema: 2 }, lead: 2 },
+      ]},
+      { q: "Si tuvieras que elegir una frase, ¿cuál te representa más?", options: [
+        { t: "“Quiero una rutina gratis para empezar”", r: {}, lead: -4 },
+        { t: "“Quiero ideas generales para mejorar”", r: {}, lead: 0 },
+        { t: "“Quiero saber qué etapa me toca: definir, subir o recomponer”", r: { recomp: 1 }, lead: 0 },
+        { t: "“Quiero un plan que se adapte a mi agenda”", r: { sistema: 1 }, lead: 3 },
+        { t: "“Quiero dejar de improvisar y saber exactamente qué hacer”", r: { sistema: 2 }, lead: 3 },
       ]},
     ];
 
@@ -282,29 +268,25 @@
        RESULTADOS
        ========================================================== */
     const RESULTS = {
-      definir: {
-        title: 'Tu etapa es <span class="em">DEFINIR</span>',
-        keyword: "DEFINIR",
-        text: "Tu prioridad no es hacer más volumen ni cambiar todo. Tu cuerpo ya tiene una base; lo que necesitas es perder grasa sin sacrificar músculo ni energía.",
-        warn: "Si defines de forma agresiva, puedes verte más chico, perder rendimiento y abandonar rápido.",
-      },
       subir: {
-        title: 'Tu etapa es <span class="em">SUBIR MÚSCULO</span>',
-        keyword: "MÚSCULO",
-        text: "Hoy tu prioridad no debería ser “marcarte”. Para definir necesitas algo que mostrar. Tu enfoque debería ser construir músculo de forma controlada, sin subir grasa innecesaria.",
-        warn: "Si intentas definir ahora, probablemente solo te vas a ver más flaco, no más atlético.",
+        title: 'Te toca <span class="em">subir músculo</span>',
+        keyword: "SUBIR",
+        text: "Ahorita tu prioridad no debería ser definir. Primero necesitas construir músculo para que cuando bajes grasa tengas algo que mostrar.",
+      },
+      definir: {
+        title: 'Te toca <span class="em">definir</span>',
+        keyword: "DEFINIR",
+        text: "Ya tienes una base. Tu enfoque debería ser bajar grasa de forma controlada sin perder músculo ni rendimiento.",
       },
       recomp: {
-        title: 'Tu etapa es <span class="em">RECOMPOSICIÓN CORPORAL</span>',
+        title: 'Te toca <span class="em">recomposición corporal</span>',
         keyword: "RECOMP",
-        text: "Tu caso no necesita una definición extrema ni un volumen agresivo. Necesitas recomposición: perder grasa, recuperar músculo y construir un sistema que puedas sostener con tu vida real.",
-        warn: "Si eliges mal la etapa, puedes pasar meses bajando y subiendo sin verte realmente mejor.",
+        text: "No necesitas un volumen agresivo ni una definición extrema. Tu mejor etapa es recomponer: perder grasa mientras construyes o recuperas músculo.",
       },
       sistema: {
-        title: 'Antes de definir o subir, necesitas <span class="em">ORDENAR TU SISTEMA</span>',
-        keyword: "AGENDA",
-        text: "Tu problema no es elegir entre definir o subir. Tu primer problema es que no tienes un sistema que aguante tu semana real. Antes de pensar en etapas avanzadas, necesitas ordenar entrenamiento, comida, sueño y seguimiento.",
-        warn: "Si intentas hacer una dieta perfecta con una vida impredecible, vas a volver al ciclo de empezar cada lunes.",
+        title: 'Primero necesitas <span class="em">ordenar tu sistema</span>',
+        keyword: "SISTEMA",
+        text: "Antes de pensar en definir o subir, necesitas construir una base: entrenar constante, comer con estructura y sostenerlo varias semanas. Sin eso, cualquier etapa se vuelve confusa.",
       },
     };
 
@@ -314,7 +296,7 @@
     let current = 0;
     const answers = new Array(QUESTIONS.length).fill(null); // guarda índice de opción
     let finalResultKey = null;
-    let leadWord = 'SOPORTE'; // REVISIÓN (lead alto, 12+) | SOPORTE (el resto)
+    let leadWord = 'SOPORTE'; // REVISION (lead alto, 12+) | SOPORTE (el resto)
 
     const el = (id) => document.getElementById(id);
     const show = (id) => {
@@ -378,8 +360,8 @@
       if (lead >= 12) tier = 'ICP_ALTO';
       else if (lead >= 6) tier = 'ICP_MEDIO';
 
-      // Palabra que mandará por WhatsApp: solo el lead alto (12+) manda REVISIÓN
-      leadWord = (lead >= 12) ? 'REVISIÓN' : 'SOPORTE';
+      // Palabra que mandará por Instagram: solo el lead alto (12+) manda REVISION
+      leadWord = (lead >= 12) ? 'REVISION' : 'SOPORTE';
 
       // Disponible para tracking / CRM:
       console.log('[LEGIONARIOS] resultado:', best, '| lead score:', lead, '| tier:', tier, '| palabra:', leadWord);
@@ -419,33 +401,17 @@
       const R = RESULTS[finalResultKey];
       el('result-title').innerHTML = R.title;
       el('result-text').textContent = R.text;
-      el('result-warn').textContent = R.warn;
-      el('wa-block').classList.add('hidden');
-      el('soft-msg').classList.add('hidden');
-      show('screen-result');
-    }
 
-    function finalAnswer(opt) {
-      const R = RESULTS[finalResultKey];
-      const soft = el('soft-msg');
-      const wa = el('wa-block');
-
-      if (opt === 'A') {
-        soft.classList.add('hidden');
-        const msg = `Hola, quiero mi ${leadWord}. Hice el diagnóstico y mi resultado fue: ${R.keyword}. Quiero saber qué ajuste harían primero en mi caso.`;
-        el('wa-preview').textContent = `“${msg}”`;
-        el('wa-btn').href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
-        wa.classList.remove('hidden');
-        wa.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else if (opt === 'B') {
-        wa.classList.add('hidden');
-        soft.textContent = 'Perfecto. Cuando quieras retomarlo, escríbenos por WhatsApp con la palabra ' + leadWord + '.';
-        soft.classList.remove('hidden');
+      // CTA dinámico según la palabra del lead
+      if (leadWord === 'REVISION') {
+        el('cta-text').textContent = 'Tu diagnóstico muestra que ya tienes claridad suficiente para hacer un cambio, pero probablemente necesitas ajustar el sistema a tu vida real. Si quieres que revisemos qué haríamos primero en tu caso:';
       } else {
-        wa.classList.add('hidden');
-        soft.textContent = 'Listo. Ya sabes qué etapa te toca: ' + R.keyword + '. Si más adelante quieres el primer ajuste concreto, escríbenos con la palabra ' + leadWord + '.';
-        soft.classList.remove('hidden');
+        el('cta-text').textContent = 'Tu diagnóstico ya te da una buena idea de qué etapa te toca. Si quieres recibir una guía de apoyo para entender mejor tu resultado:';
       }
+      el('cta-word').textContent = leadWord;
+      el('ig-btn').href = INSTAGRAM_URL;
+
+      show('screen-result');
     }
   </script>
 </body>
